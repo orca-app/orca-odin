@@ -234,6 +234,7 @@ enum_prefixes_specific = {
     "OC_UI_FLAG_",
     "OC_UI_EDIT_MOVE_",
     "OC_UTF8_",
+    "OC_CLOCK_",
 }
 
 enum_prefixes_fully = {
@@ -283,11 +284,9 @@ def check_enum_name_decimal(name):
 enum_bit_sets_list = {
     "keymod_flags": ["keymod_flag", "keymod_flags", "u32", 0],
     "file_dialog_flags": ["file_dialog_flag", "file_dialog_flags", "u32", 0],
-    "file_open_flags_enum": ["file_open_flag", "file_open_flags", "u16", 1],
-    "file_access_enum": ["file_access_flag", "file_access", "u16", 1],
-    "file_perm_enum": ["file_perm_flag", "file_perm", "u16", 1],
-    "ui_status_enum": ["ui_status_flag", "ui_status", "u8", 1],
-    "ui_flags": ["ui_flag", "ui_flags", "u32", 0],
+    "file_open_flags_enum": ["file_open_flag", "file_open_flags", "u16", 0],
+    "file_access_enum": ["file_access_flag", "file_access", "u16", 0],
+    "file_perm_enum": ["file_perm_flag", "file_perm", "u16", 0],
 }
 
 def gen_enum_bit_set_combo(obj, file, name, indent):
@@ -613,15 +612,16 @@ def iterate_object(obj, file, shared_block):
 
 # write package info and types
 def write_package(file):
-    file.write("""package orca
+    file.write("""// Bindings for the Orca platform
+//
+// See: [[ https://orca-app.dev ]]
+
+package orca
 
 import "core:c"
 
 char :: c.char
 
-// currently missing in the api.json
-window :: distinct u64
-    
 // currently missing in the api.json
 pool :: struct {
 \tarena: arena,
@@ -758,20 +758,6 @@ UNICODE_SUPPLEMENTARY_PRIVATE_USE_AREA_A :: unicode_range { 0xf0000, 65533 }
 UNICODE_SUPPLEMENTARY_PRIVATE_USE_AREA_B  :: unicode_range { 0x100000, 65533 }
 """)
 
-def write_clock(file):
-    file.write("""
-clock_kind :: enum c.int {
-\tMONOTONIC,
-\tUPTIME,
-\tDATE,
-}
-
-@(default_calling_convention="c", link_prefix="oc_")
-foreign {
-\tclock_time :: proc(clock: clock_kind) -> f64 ---
-}
-""")
-
 def write_helpers(file):
     file.write("""
 file_write_slice :: proc(file: file, slice: []char) -> u64 {
@@ -790,7 +776,6 @@ if __name__ == "__main__":
     with open("orca.odin", "w") as odin_file:
         write_package(odin_file)
         write_unicode_constants(odin_file)
-        write_clock(odin_file)
         write_helpers(odin_file)
         temp_block = io.StringIO("")
         
